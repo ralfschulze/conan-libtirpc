@@ -39,7 +39,12 @@ class LibnameConan(ConanFile):
         os.rename(extracted_dir, self.source_subfolder)
 
     def configure_autotools(self):
-        args = ['--enable-shared=yes', '--enable-static=no'] if self.options.shared else ['--enable-shared=no', '--enable-static=yes']
+        args = ['--disable-gssapi']
+        if self.options.shared:
+            args.extend(['--enable-shared=yes', '--enable-static=no'])
+        else:
+            args.extend(['--enable-shared=no', '--enable-static=yes'])
+
         autotools = AutoToolsBuildEnvironment(self)
         autotools.configure(configure_dir=self.source_subfolder, args=args)
         return autotools
