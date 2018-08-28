@@ -7,7 +7,7 @@ import os
 
 class LibnameConan(ConanFile):
     name = "libtirpc"
-    version = "1.0.3"
+    version = "1.1.4"
     description = "Libtirpc is a port of Suns Transport-Independent RPC library to Linux. It's being developed by the Bull GNU/Linux NFSv4 project."
     url = "https://github.com/bincrafters/conan-libtirpc"
     homepage = "https://sourceforge.net/projects/libtirpc/"
