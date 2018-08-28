@@ -1,8 +1,8 @@
-#include <cstdlib>
-#include <iostream>
+#include <rpc/xdr.h>
 
 int main()
 {
-    std::cout << "Bincrafters\n";
-    return EXIT_SUCCESS;
+    XDR xdr;
+    xdrrec_create(&xdr, 65536, 0, 0, 0, 0);
+    return 0;
 }

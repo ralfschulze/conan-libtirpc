@@ -1,31 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, AutoToolsBuildEnvironment, tools
 import os
 
 
 class LibnameConan(ConanFile):
-    name = "libname"
-    version = "0.0.0"
-    description = "Keep it short"
-    url = "https://github.com/bincrafters/conan-libname"
-    homepage = "https://github.com/original_author/original_lib"
+    name = "libtirpc"
+    version = "1.0.3"
+    description = "Libtirpc is a port of Suns Transport-Independent RPC library to Linux. It's being developed by the Bull GNU/Linux NFSv4 project."
+    url = "https://github.com/bincrafters/conan-libtirpc"
+    homepage = "https://sourceforge.net/projects/libtirpc/"
     author = "Bincrafters <bincrafters@gmail.com>"
     # Indicates License type of the packaged library
-    license = "MIT"
+    license = "BSD"
 
     # Packages the license for the conanfile.py
     exports = ["LICENSE.md"]
-
-    # Remove following lines if the target lib does not use cmake.
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
-
     # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = "shared=False", "fPIC=True"
+    options = {"shared": [True, False]}
+    default_options = "shared=False"
 
     # Custom attributes for Bincrafters recipe conventions
     source_subfolder = "source_subfolder"
@@ -35,43 +30,31 @@ class LibnameConan(ConanFile):
     # Update 2/9/18 - Per conan team, ranges are slow to resolve.
     # So, with libs like zlib, updates are very rare, so we now use static version
 
-
-    requires = (
-        "OpenSSL/[>=1.0.2l]@conan/stable",
-        "zlib/1.2.11@conan/stable"
-    )
-
-    def config_options(self):
-        if self.settings.os == 'Windows':
-            del self.options.fPIC
-
     def source(self):
-        source_url = "https://github.com/libauthor/libname"
-        tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
+        source_url = " https://downloads.sourceforge.net/project/libtirpc/libtirpc"
+        tools.get("{0}/{1}/libtirpc-{1}.tar.bz2".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
 
         #Rename to "source_subfolder" is a convention to simplify later steps
         os.rename(extracted_dir, self.source_subfolder)
 
-    def configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False # example
-        if self.settings.os != 'Windows':
-            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = self.options.fPIC
-        cmake.configure(build_folder=self.build_subfolder)
-        return cmake
+    def configure_autotools(self):
+        args = ['--enable-shared=yes', '--enable-static=no'] if self.options.shared else ['--enable-shared=no', '--enable-static=yes']
+        autotools = AutoToolsBuildEnvironment(self)
+        autotools.configure(configure_dir=self.source_subfolder, args=args)
+        return autotools
 
     def build(self):
-        cmake = self.configure_cmake()
-        cmake.build()
+        autotools = self.configure_autotools()
+        autotools.make()
 
     def package(self):
         self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
-        cmake = self.configure_cmake()
-        cmake.install()
+        autotools = self.configure_autotools()
+        autotools.install()
         # If the CMakeLists.txt has a proper install method, the steps below may be redundant
         # If so, you can just remove the lines below
-        include_folder = os.path.join(self.source_subfolder, "include")
+        include_folder = os.path.join(self.source_subfolder, "tirpc")
         self.copy(pattern="*", dst="include", src=include_folder)
         self.copy(pattern="*.dll", dst="bin", keep_path=False)
         self.copy(pattern="*.lib", dst="lib", keep_path=False)
