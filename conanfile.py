@@ -50,19 +50,17 @@ class LibtirpcConan(ConanFile):
                 "--with-pic" if self.options.fPIC else "--without-pic",
             ]
             self._autotools = AutoToolsBuildEnvironment(self)
-            self._autotools.configure(args=conf_args)
+            self._autotools.configure(configure_dir=os.path.join(self.source_folder, self._source_subfolder), args=conf_args)
         return self._autotools
 
     def build(self):
-        with tools.chdir(self._source_subfolder):
-            autotools = self._configure_autotools()
-            autotools.make()
+        autotools = self._configure_autotools()
+        autotools.make()
 
     def package(self):
         self.copy("COPYING", dst="licenses", src=self._source_subfolder)
-        with tools.chdir(self._source_subfolder):
-            autotools = self._configure_autotools()
-            autotools.install()
+        autotools = self._configure_autotools()
+        autotools.install()
         tools.rmdir(os.path.join(self.package_folder, "share"))
         tools.rmdir(os.path.join(self.package_folder, "etc"))
 
