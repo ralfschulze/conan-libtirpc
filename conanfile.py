@@ -1,71 +1,69 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
+from conans.errors import ConanInvalidConfiguration
 import os
 
 
-class LibnameConan(ConanFile):
+class LibtirpcConan(ConanFile):
     name = "libtirpc"
     version = "1.1.4"
-    description = "Libtirpc is a port of Suns Transport-Independent RPC library to Linux. It's being developed by the Bull GNU/Linux NFSv4 project."
+    description = "Libtirpc is a port of Suns Transport-Independent RPC library to Linux"
+    topics = ("conan", "tirpc", "RPC", "sun", "transport", "independent")
     url = "https://github.com/bincrafters/conan-libtirpc"
-    homepage = "https://sourceforge.net/projects/libtirpc/"
+    homepage = "https://sourceforge.net/projects/libtirpc"
     author = "Bincrafters <bincrafters@gmail.com>"
-    # Indicates License type of the packaged library
     license = "BSD"
-
-    # Packages the license for the conanfile.py
     exports = ["LICENSE.md"]
-    # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {
+        "shared": [True, False],
+        "fPIC": [True, False],
+    }
+    default_options = {
+        "shared": False,
+        "fPIC": True,
+    }
+    _source_subfolder = "source_subfolder"
+    _autotools = None
 
-    # Custom attributes for Bincrafters recipe conventions
-    source_subfolder = "source_subfolder"
-    build_subfolder = "build_subfolder"
-
-    # Use version ranges for dependencies unless there's a reason not to
-    # Update 2/9/18 - Per conan team, ranges are slow to resolve.
-    # So, with libs like zlib, updates are very rare, so we now use static version
+    def configure(self):
+        if self.settings.os != "Linux":
+            raise ConanInvalidConfiguration("libtirpc is only supported for Linux")
+        del self.settings.compiler.libcxx
 
     def source(self):
-        source_url = " https://downloads.sourceforge.net/project/libtirpc/libtirpc"
-        tools.get("{0}/{1}/libtirpc-{1}.tar.bz2".format(source_url, self.version))
-        extracted_dir = self.name + "-" + self.version
+        url = "{homepage}/files/{name}/{version}/{name}-{version}.tar.bz2".format(
+            homepage=self.homepage, name=self.name, version=self.version
+        )
+        sha256 = "2ca529f02292e10c158562295a1ffd95d2ce8af97820e3534fe1b0e3aec7561d"
+        tools.get(url, sha256=sha256)
+        os.rename("{}-{}".format(self.name, self.version), self._source_subfolder)
 
-        #Rename to "source_subfolder" is a convention to simplify later steps
-        os.rename(extracted_dir, self.source_subfolder)
-
-    def configure_autotools(self):
-        args = ['--disable-gssapi']
-        if self.options.shared:
-            args.extend(['--enable-shared=yes', '--enable-static=no'])
-        else:
-            args.extend(['--enable-shared=no', '--enable-static=yes'])
-
-        autotools = AutoToolsBuildEnvironment(self)
-        autotools.configure(configure_dir=self.source_subfolder, args=args)
-        return autotools
+    def _configure_autotools(self):
+        if not self._autotools:
+            conf_args = [
+                "--disable-gssapi",
+                "--enable-ipv6",
+                "--enable-shared" if self.options.shared else "--disable-shared",
+                "--disable-static" if self.options.shared else "--enable-static",
+                "--with-pic" if self.options.fPIC else "--without-pic",
+            ]
+            self._autotools = AutoToolsBuildEnvironment(self)
+            self._autotools.configure(configure_dir=os.path.join(self.source_folder, self._source_subfolder), args=conf_args)
+        return self._autotools
 
     def build(self):
-        autotools = self.configure_autotools()
+        autotools = self._configure_autotools()
         autotools.make()
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self.source_subfolder)
-        autotools = self.configure_autotools()
+        self.copy("COPYING", dst="licenses", src=self._source_subfolder)
+        autotools = self._configure_autotools()
         autotools.install()
-        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
-        # If so, you can just remove the lines below
-        include_folder = os.path.join(self.source_subfolder, "tirpc")
-        self.copy(pattern="*", dst="include", src=include_folder)
-        self.copy(pattern="*.dll", dst="bin", keep_path=False)
-        self.copy(pattern="*.lib", dst="lib", keep_path=False)
-        self.copy(pattern="*.a", dst="lib", keep_path=False)
-        self.copy(pattern="*.so*", dst="lib", keep_path=False)
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+        tools.rmdir(os.path.join(self.package_folder, "share"))
+        tools.rmdir(os.path.join(self.package_folder, "etc"))
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.includedirs = ["include", os.path.join("include", "tirpc")]
+        self.cpp_info.libs = ["tirpc", "pthread"]
