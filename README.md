@@ -1,5 +1,5 @@
 [![Download](https://api.bintray.com/packages/bincrafters/public-conan/libtirpc%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/libtirpc%3Abincrafters/_latestVersion)
-[![Build Status](https://travis-ci.org/bincrafters/conan-libtirpc.svg?branch=stable%2F1.1.4)](https://travis-ci.org/bincrafters/conan-libtirpc)
+[![Build Status](https://travis-ci.com/bincrafters/conan-libtirpc.svg?branch=stable%2F1.1.4)](https://travis-ci.com/bincrafters/conan-libtirpc)
 
 [Conan.io](https://conan.io) package recipe for [*libtirpc*](https://sourceforge.net/projects/libtirpc/).
 
