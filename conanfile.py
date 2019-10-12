@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from conans import ConanFile, AutoToolsBuildEnvironment, tools
 from conans.errors import ConanInvalidConfiguration
 import os
@@ -31,6 +29,7 @@ class LibtirpcConan(ConanFile):
         if self.settings.os != "Linux":
             raise ConanInvalidConfiguration("libtirpc is only supported for Linux")
         del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd
 
     def source(self):
         url = "{homepage}/files/{name}/{version}/{name}-{version}.tar.bz2".format(
