@@ -10,7 +10,6 @@ class LibtirpcConan(ConanFile):
     topics = ("conan", "tirpc", "RPC", "sun", "transport", "independent")
     url = "https://github.com/bincrafters/conan-libtirpc"
     homepage = "https://sourceforge.net/projects/libtirpc"
-    author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD-3-Clause"
     exports = ["LICENSE.md"]
     settings = "os", "arch", "compiler", "build_type"
