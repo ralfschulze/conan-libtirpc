@@ -11,7 +11,6 @@ class LibtirpcConan(ConanFile):
     url = "https://github.com/bincrafters/conan-libtirpc"
     homepage = "https://sourceforge.net/projects/libtirpc"
     license = "BSD-3-Clause"
-    exports = ["LICENSE.md"]
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "shared": [True, False],
